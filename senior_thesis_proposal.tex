@@ -1,0 +1,280 @@
+\documentclass[12pt]{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amscd}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\usepackage{epsfig}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsthm}
+\pagestyle{empty}
+\usepackage{color}
+%\usepackage[all,dvips]{xy}
+\usepackage[sort&compress,square,comma,authoryear]{natbib}
+
+\setlength{\textheight}{8.5in} \setlength{\topmargin}{0.0in}
+\setlength{\headheight}{0.0in} \setlength{\headsep}{0.0in}
+\setlength{\leftmargin}{0.5in}
+\setlength{\oddsidemargin}{0.0in}
+%\setlength{\parindent}{1pc}
+\setlength{\textwidth}{6.5in}
+%\linespread{1.6}
+
+\newcommand{\ra}[1]{\renewcommand{\arraystretch}{#1}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{note}[theorem]{Note}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{prop}[theorem]{Proposition}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[parfill]{parskip}
+
+\usepackage{fancyhdr} 
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\cfoot{\thepage}
+\pagestyle{fancy}
+\begin{document}
+\thispagestyle{empty}
+\vspace*{\fill}
+\bigskip
+\bigskip
+
+\centerline{\textbf{\Large{Research Proposal}}}
+
+\bigskip
+
+\centerline{\textbf{\Large{Automatic Feature Extraction and Re-Synthesis of}}}
+\centerline{\textbf{\Large{Audio Data using Neural Networks and a Gradient}}}
+\centerline{\textbf{\Large{Descent Re-Synthesis Approach}}}
+
+\bigskip
+\bigskip
+
+\centerline{\textbf{David Anderson}}
+
+\bigskip
+\bigskip
+
+\centerline{\textbf{\today}}
+
+
+\bigskip
+\bigskip
+\vspace*{\fill}
+
+\newpage
+
+\pagenumbering{gobble}
+\pagenumbering{roman}
+
+\begin{abstract}
+Music Information Retrieval (MIR) is a discipline centered around extracting information from audio data. MIR tasks focus on mathematically defining features that can be extracted from any given audio input. Once defined and extracted, these features can be used to computationally solve various problems such as classification into categories, determining likely-hood of a match between samples, or recognizing the content of the sample - as seen in many voice-to-text applications. Manually defining these features, however, requires the architect to have an understanding of audio data and the mathematics required to represent them. Furthermore, features that are shown to work well for a certain application are not guaranteed to yeild good results in another. This results in the need to define new feature sets for each task. Machine Learning techniques can be utilized in order to automatically extract relevant information from within audio samples. In this document a Deep Neural Network application capable of extracting high-level information from image data is introduced, as well as MIR applications that have adapted similar approaches for automatic feature extraction from audio. Work is proposed to use a Deep Belief Network in order to automatically learn relevant audio features. An approach is also defined to re-synthesize the original audio input from its learned features in order to validate their efficacy in representing information within the audio data.
+\end{abstract}
+
+\newpage
+
+\textbf{\Huge{Declaration}}
+
+\bigskip
+
+I, David John Anderson, hereby declare the contents of this research proposal to be my own work. This report is submitted for the degree of Master of Science at the University of the Witwatersrand. This work has not been submitted to any other university, or for any other degree.
+
+\newpage
+
+\tableofcontents
+
+\newpage
+\pagenumbering{gobble}
+\pagenumbering{arabic}
+
+\section{Introduction}
+
+%This review aims to provide an overview of the subject of Music Information %Retrieval (MIR), as well as insight into how Machine Learning
+%may be imployed to create robust MIR systems capable of learning high-order %representations of audio signal.
+%\subsection{What is MIR?}
+Music Information Retrieval (MIR) is an interdisciplinary science based on extracting meaningful information from music data. This information might provide a way to automatically identify key areas of interest in the audio data, recognize and capture musical information, or show us key characteristics of what it is that makes a sound, sound the way it does. This understanding may lead to solutions that can categorize large libraries of audio files, create recommendations of audio files that match input criteria, or even manuipulate and re-synthesize input audio.
+
+%\subsection{How do MIR applications typically work?}
+MIR applications focus on sets of perceptually relevant features in the audio data being analysed \citep{Lidy05,mirSurvey05}. It makes sense to exploit our understanding of well defined psycho-acoustic and musical properties to create reduced feature sets relevant to the human listener. Today, there exists a number of commercial level MIR systems that successfully analyse optimised feature spaces to search, categorize and find matches in audio input \citep{mirSurvey05}. Manually defining reduced features only based on our audible perception, however, inherently removes information from our input that we may not perceive as relevant. 
+
+%\subsection{What is in this paper?}
+In the sections that follow I will introduce established MIR approaches, as well as various related works that have utilized them successfully. I will also introduce new approaches that have leveraged modern Machine Learning techniques in an attempt to identify richer patterns and feature sets in the underlying audio data. I will discuss an existing Image Processing application that has utilized Neural Networks in their image re-synthesis approach, and to this draw a parallel in the audio domain. This will motivate the approach proposed by this paper, and will be presented as the proposed research methodology. Finally, timelines outlining various milestones will be presented to motivate the feasibility of the final result.
+%------------------------------------------------
+
+\section{Human-perceptually relevant features}
+%\subsection{What are features?} 
+The first step in any type of automatic audio analysis is the extraction of feature vectors \citep{Tzanetakis02}. Feature vectors are mathematical representations of useful information within the data. One of the main problems to overcome, is the high-dimensionality of audio data. High-dimensionality has been famously dubbed "...a curse" \citep{Bellman57} due to the fact that problem complexity grows exponentially with linear increase in dimensionality \citep{DeepLearningSurvey2010}.
+
+%\subsection{Sucessfull Mathematically defined features}
+Amid this complexity, there have been acoustic features proposed that limit the dimensionality of the representation, and prove themselves useful for various applications \citep{Wold96,Typke04,Prechelt01}. \cite{Wold96} use a set of audio features inspired by human understanding of audio data, all of which can be mathematically computed from the audio signal and extracted from the spectrogram of its frequencies. This set of features includes: 
+\begin{itemize}
+\item Loudness
+\item Pitch
+\item Brightness
+\item Bandwidth
+\item Harmonicity
+\end{itemize}
+Utilizing these features was a pioneering step in MIR due to being both perceptually relevant as well as mathematically computable. This approach immediately allows users to search for audio data within constraints of a specific feature. For instance, searching for audio within a certain pitch band no louder than a given loudness. Furthermore, the author presents a statistical method to classify a given subset of input samples by finding the mean and covariance between their feature vectors. This allows users to select, sort and classify audio data in a database. Results reported by the authors showed that sounds we know to be similar have very high similarity ratings, but there also exists a number of less highly rated false-positives. For example, an audio clip of laughter was deemed to be highly similar to the Laughter category, but so did the sounds of a chicken coop.
+
+%\subsection{Improving upon these defined vectors - Keeping time in mind}
+The immediate limitation to the methodology defined by \citet{Wold96} is that the features are calculated over the entire audio sample. By doing this, temporal components of the audio data are ignored. This results in poor performance on longer input samples. To improve upon this there are signal-processing methods that take the temporal aspect of audio data into account. These methods involve creating a "window" function that looks at a small subset of the input sample, and then moves along the audio signal in constant time-steps forward. Feature vectors are then calculated at each window location, preserving the temporal nature of the data. This common signal processing technique is essential within the realm of MIR, and has been widely utilized in the literature \citet{Foote1997,Lidy05,Tzanetakis02,Hamel2010LearningFeatures,mierswa2005automatic}.
+
+%\subsection{Example of Time dependent feature method}
+Along with accounting for the lack of the temporal component in \citet{Wold96}, \citet{Tzanetakis02} notes that the afformentioned feature set is not particularly well suited for the analysis of \textit{music} audio data. It does not attempt to model musical information we know to be relevant. The authors improve upon this not only by keeping a running average of the features at small windows of the audio data, but by adding musically relevant feature sets that define Timbral Texture, Rhythmic Content and Pitch Content. The feature sets can once again be extracted from spectrographic transforms of the audio data. Utilizing these additional feature sets showed a successful classification rate of 61\%.
+
+%\subsection{Increasing frequency granularity - features within spectrum bands}
+Rhythmic features inspired by \citet{Tzanetakis02} have since been used in the SOM-enhanced JukeBox, a commercial application that organizes music archives, presented by \citet{rauber2003som}. The biggest difference is that the rhythmic characteristics are considered within multiple frequency bands of the input, as opposed to once across the whole spectrum. This set doesn't represent traditional rhythm, but describes fluctuations within each of the bands considered. These feature vectors become input to a variation of a Self-Organizing Map (SOM) \citep{kohonen2002make}. SOMs are a type of Artificial Neural Network that can be trained to map highly dimensional input to a low dimensional output, while clustering the results of similar inputs together. The promising results have resulted in a commercial system that allows exploring unknown musical pieces similar to ones personal likings.
+
+%\subsection{What do the granular rhythmic features represent?}
+\citet{Lidy05} take the previous rhythmic features across multiple frequency bands and ask the question "What is it that the features represent?" The authors propose that a method of testing features and what they represent, is to re-synthesize the audio from the feature set extracted. In this way, re-synthesized audio can be manually compared to the original audio for similarity, and thus determine how effectively the features represent the original. The sound synthesis was performed by inverse spectrographic transforms, and as such data is inherently lost in the end result. While specifics of the audio data are lost, genres with a strong clear beat can clearly be distinguished from each other and it is even possible to perceive the voice of a singer in a re-synthesized sound. This success is attributed to the fact that the features represent much more than conventional rhythm, but fluctuations within the frequency bands.
+
+\section{Spectrograms}
+%\subsection{Mathematical tools for defining features}
+Many of the feature sets discussed up to now are possible to represent mathematically thanks to the spectrogram. A spectrogram is a visually represented time-dependent graph of the frequencies and their strength in an input signal. \citet{Wold96} describe pitch by analysing the strongest frequencies in the spectrogram, and finding the lowest common divisor. This represents the frequency of the pitch. 
+
+%\subsection{More than just tools to define features}
+While spectrograms are used in the manual definition of feature sets, they can also be used as features themselves, albeit highly dimensional. Raw spectrograms have been applied successfully in the fields of speech analysis and synthesis \citep{flanagan2013speech}, due to the fact that spoken phones (any distinct speech sound) have fairly distinct spectrograms. Given a dataset of phones and their matching spectrogram, one can define similarity measures to match phones in input speech and decode the spoken word.
+
+%\subsection{Spectrogram use in commercial application}
+Another commercially successful application utilizing spectrogram analysis is Shazam, defined in \citet{Shazam03}. The authors implement a system where the peaks in the highly dimensional time-frequency spectrogram are marked, and the rest of the data is removed. This creates a sparse set of coordinates uniquely identifying the particular audio track being analyzed, like a finger-print. Once a song has been analyzed, finger-printed, indexed and stored, reverse look-up becomes as easy as applying the same finger-printing technique to a sample of the audio, and efficient search techniques to find matches in the database. 
+
+\section{Mel-Frequency Cepstral Coefficients}
+%\subsection{More specific type of spectrum for voice}
+Mel-Frequency Cepstral Coefficients (MFCCs) were first introduced by \citet{Davis1980MFCC}. These coefficients describe a Mel-Frequency Cepstrum, which is a transform of a sound spectrum, that leverages knowledge of the human auditory system to restrict the dimensionality of a sound spectrogram, while still retaining its useful nature. The success of MFCCs as feature vectors is largely due to their ability to represent important parts of the speech amplitude spectrum in a compact form \citep{Logan2000mel}.  The results in the inaugural work, as well as in works such as \citet{Foote1997} has led to MFCCs being the the dominant features used for speech recognition systems. Other applications have used MFCCs in their feature space when analyzing music due to the fact that they have been so successful in speech analysis. \citet{Logan2000mel} determine that their use is at least not harmful to the results, but that there may be other more optimal scales for modeling music spectra.
+
+\section{Automatic feature learning}
+%\subsection{Manual definition is a pain - Let the computer decide}
+While manually defining feature sets based on our perception of audio properties has yielded promising results, doing so intrinsically discards data from within the original input that may still be useful in pattern recognition and information retrieval. As such, researchers are looking to Machine Learning techniques to automatically learn feature representations of audio data.  \citet{mierswa2005automatic} note that manually crafting feature sets is tedious as every new classification task requires tailoring of a new set well suited to the task at hand. They define a framework for automatically learning features from within audio samples. This is done through a two step process, where known methods are used to extract known features, and fed into a statistical classifier. The methods are then mutated via a genetic algorithm and the process repeated until the classifier results reach an optimum, effectively tailoring a subset of features suited to the task at hand, and ignoring those that worsen the results. While the genetic algorithm approach shows promising results, a tree of well known operations is still initially defined.
+
+%\subsection{Deep Learning can be a way to auto-learn the features}
+Advancements in the field of Deep Machine Learning may provide a way for algorithms to automatically learn relevant operations and representations. Deep Learning involves learning representations of complex data at higher and higher levels of abstraction. The idea is that features learned at a lower level of abstraction, such as edges in images, become the input to learning features at one level of abstraction higher, such as shapes made up of edges. The concept of Deep Learning dates back to the 60's with \citet{ivakhnenko1965cybernetic} presenting a working algorithm for supervised training of basic neural networks. Neural Networks with multiple layers seem inherently suited to learning these increasingly abstract representations, however the training of such networks has proven to be problematic. \citet{bengio2009learning} has since introduced a number of learning algorithms for various deep learning architectures that successfully address the computational complexity of training and have been implemented in various approaches.
+
+%\subsection{Practical example for Deep Learning / DBN}
+\citet{Hamel2010LearningFeatures} implement a training algorithm in order to train a Deep Belief Network (DBN) on input music data and explore the question "Can we learn features for a given task directly from musical audio that would better represent the audio than engineered signal-processing features?". DBNs are neural networks trained layer by layer, in an approach outlined by \citet{hinton2006fast}, in order to learn how the variables in one layer depend on the variables in the layer below. Once trained, the output values at any level can be inferred by passing an observed data vector through the network. The authors promising results show that the automatically learned features from layers in the DBN can significantly out perform MFCCs and other carefully crafted feature sets in the tasks of genre classification and audio auto-tagging.
+
+%\subsection{Dimensionality can still be a problem - CNNs to the rescue}
+While DBNs have proven themselves useful, the high dimensionality of audio can introduce a scaling problem in the fast training of them. Convolutional Neural Networks (CNNs) reduce the dimensionality of the input by convolving the outputs of neurons handling portions of the input that have a spatially local correlation into a single input for a neuron in the next layer. CNNs, introduced by \citet{atlas1988artificial}, have been implemented in the MIR domain for automated feature learning by \citet{li2010automatic}. Not only do the results show that CNNs can extract musically relevant features from audio data, but also that the model is highly scalable thanks to the reduction in dimensionality due to networks convolutional aspect.
+
+%\subsection{CNNs - Examples from the Image Processing domain}
+Recently Convolutional Neural Networks have received a lot of attention from the Image Processing community due to their ability to effectively identify abstract information within images. \citet{lee2009convolutional} show how the feature detectors learned in a CNN can be shared among all locations in an image. This effectively gives the CNN a level of translational-invariance - which allows it to recognize objects regardless of their orientation in the image. \citet{mahendran2015understanding} have also shown, through their image re-synthesis technique, that several layers in CNNs retain photographically accurate information about the image. \citet{gatys2015neural} add to this by showing that CNNs can extract representations of more than just the \emph{content} of an image. They show that information about the style and texture of an image can be defined by looking at relationships between various layers of a CNN, and similarly prove this using image re-synthesis techniques.
+
+%\subsection{The best of both worlds}
+Combining the benefits of both DBNs and CNNs, the authors of \citet{lee2009convolutional} and \citet{lee2009unsupervised} present the use of a Convolutional Deep Belief Network for the unsupervised learning of image and musical features. This approach is motivated once again by the successes of DBNs, but also by the need to reduce dimensionality in order to allow training algorithms to scale to high definition input. Once trained, the CDBNs output layers are used as the feature vector inputs to various established supervised classifiers. The CDBN outputs were seen to outperform standard feature sets like MFCCs at speaker identification, and gender classification. In the case of speaker identification, success rates of up to 95\% are reported, with the rate climbing even higher when combining the learned features along with MFCCs as feature vectors.
+
+\subsection{Important work in Image Processing and Synthesis}
+In the recent work by \citet{gatys2015neural}, the authors identify two near independent feature sets representing the content and artistic style of an image. This work is important to the research proposed in this document as the method borrows conceptually from the authors approach, but aims to apply it to the audio domain.
+
+The work utilizes an existing (and award winning) Convolutional Neural Network designed for the recognition of the content in images. At each layer of the neural network, the output represents the content features of the input image at higher and higher levels of abstraction. As the layers increase, less and less exact pixel detail is retained as it becomes less important to the high level concept of what the layer is identifying in the content of the input image. As inspired by \citet{gatys2015texture} the stylistic, or textural, features within the image can be formalized by a clever relationship \emph{between} the output layers. These two feature sets are shown to be nearly independent by \citet{gatys2015neural} - implying that the \emph{stylistic}, or \emph{textural}, features can be manipulated without altering the \emph{content} of the image its self, which is precisely what the algorithm realized by the authors does. (See fig \ref{fig:neurlstyle})
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{img/neuralstyle.jpg}
+  \caption{Results from \citet{gatys2015neural}}
+  \label{fig:neurlstyle}
+\end{figure}
+
+In order to visualise the information about the image that is encoded at each layer of the CNN, the authors synthesize a new image such that the outputs of layer $n$, when the synthesized image is input, match the outputs of layer $n$ when the original image is input. The syntheiszed image is thus created by performing a gradient descent operation on a white noise sample image until another image that matches the feature responses of the original image is found. The operation is applied to a squared-error loss function defined as
+
+$$L_{content}(\vec{p}, \vec{x}, l) = \frac{1}{2}\sum_{i,j}(F^{l}_{ij} - P^{l}_{ij})^2$$
+
+where $\vec{p}$ and $\vec{x}$ are the original image and the synthesized image, and $P^l$ and $F^l$ are their respective feature representation in layer $l$. Neuron $i$ in layer $l$ outputs a feature map $P^{l}_{i} \in \Re^{M_i}$ where $M_i$ is the size of the feature map and $j \in [0, M_i]$.
+
+The derivative of this loss function with respect to the activations in level $l$ is then defined as
+
+\[
+\frac{\delta L_{content}}{\delta F^{l}_{ij}} = 
+\begin{cases}
+(F^l - p^l)_{ij} & \text{if}  F^{l}_{ij} > 0, \\
+0 & \text{if} F^{l}_{ij} < 0
+\end{cases}
+\]
+
+By performing gradient descent on this loss function, thereby minimizing it, a new image is synthesized that produces very similar features when fed through the network to that of the original input image when fed through the network. The visual result of this is an image whose visible content very closely matches that of the original input image. This shows that the network encodes enough valuable information about the original image to successfully recreate it.  
+
+
+\section{Proposed Work}
+
+Previous sections have introduced the field of MIR as well as various pieces of work that show the field to be an active area of research. With the revival of Deep Learning and Artificial Neural Networks, there are opportunities available to apply these techniques within the realm of MIR and audio data. The following sections will introduce research questions to be answered, as well as a method for probing and answering them. An estimated timeline will be proposed, and any concerns and their proposed solutions will be noted.
+
+\subsection{Research Questions}
+The questions to be answered by the proposed research can be formalized as:
+
+\begin{itemize}
+\item \textbf{RQ1}: Can a Deep Neural Network encode enough information about audio data in order to re-synthesize it with a gradient descent approach similar to that by \citet{gatys2015neural}?
+\item \textbf{RQ2}: Is a Deep Belief Network suited to the application of Audio Data?
+\item \textbf{RQ2}: How deep is sufficiently deep for the network implementation?
+\end{itemize}
+
+For each of these questions, hypothesized results are as follows:
+
+\begin{itemize}
+\item \textbf{H1}: Deep Neural Networks have shown themselves able to encode important information and relationships in high dimensional data. While the audio will most likely not be perfectly reproduced, the synthesized output will retain statistically significant similiarities to the input audio. 
+\item \textbf{H2}: Deep Belief Networks will be shown to be successful in the feature extraction from audio data as they learn to probabilistically recreate their inputs, and are effective at greedy layer-wise training. This will allow for scaling of the architecture to deeper sizes. 
+\item \textbf{H3}: 6 layers will yeild results with statistically relevant similarities between input and synthesized audio. Deeper networks will learn more abstract concepts and the number of statistically relevant similarities may actually decrease.
+
+\end{itemize}
+
+\subsection{Research Method}
+In order to answer the research questions and test their hypotheses, an experimental implementation is proposed. Create a Deep Belief Network architecture capable of taking in audio data. Train this network in an unsupervised fashion on a large set of training data in order for it to learn relationships between frequency bands. As done by \citet{gatys2015neural}, define a loss function emphasizing the difference between output from the network when a white noise sample is passed through and when the target input is passed through. Show this function to be differentiable and perform a gradient descent operation on it, synthesizing new audio data that has feature responses of the input audio data. Perform a similarity check between the original and the synthesized audio output to validate the learned features efficacy at recreating the input audio.
+
+\subsubsection{Training and Training Data}
+Availability of training data is always a concern in Machine Learning tasks. With insufficient data set size, networks often end up being over-fitted and learning only to encode the examples in the training set instead of the general function that defines them. Labeled data-sets for supervised learning are usually the limiting factor. The proposed network does not have the same need for labeled data as it will be trained in an unsupervised approach. Multiple data sets are available and can be combined, such as \href{http://www-ai.cs.uni-dortmund.de/audio.html}{homburg} and \href{http://marsyas.info/downloads/datasets.html}{GTZAN}, along with personal music collections. A final training set in the order of 10,000 training inputs will be attempted. The unsupervised training algorithm to be implemented, \texttt{TrainUnsupervisedDBN}, is defined in section 6 of \citet{bengio2009learning}.
+
+\subsubsection{Testing the result}
+In order to test for statistical similarities, spectral analysis will be performed on both the original input audio sample, and the synthesized output. Similarities both in frequencies over time as well as RMS power will be analyzed, as well as initial frequency onsets at particular times. This will yeild a quantitative measure of similarity from a spectral perspective. Opinion based surveys may also be carried out to determine human acceptance of similarity between the audio. This will only be carried out if time permits as an ethics clearance will have to be attained.
+
+\subsection{Timeline of Proposed Work}
+%\begin{table*}\centering
+\ra{1.3}
+\begin{tabular}{@{}rrrrcrrrcrrr@{}}
+\toprule
+\multicolumn{1}{c}{Date Start} & \multicolumn{1}{c}{Date End} & \multicolumn{1}{c}{Task}
+\\\midrule
+1 March 2016 & 1 May 2016 & Gather sources and determine topic \\
+1 May 2016 & 1 June 2016 & Write literature review\\
+1 June 2016 & 1 July 2016 & Write research proposal \\
+4 July 2016 & 4 July 2016 & Present research proposal \\
+4 July 2016 & 25 July 2016 & Design network architecture \\
+25 July 2016 & 15 Aug 2016 & Collect library of input training data \\
+15 Aug 2016 & 15 Sept 2016 & Create input pre-processor \\
+15 Sept 2016 & 15 Oct 2016 & Implement network architecture \& training algorithm \\
+15 Oct 2016 & 15 Nov 2016 & Create training executor program \\
+15 Nov 2016 & 15 Dec 2016 & Pre-process input training data \\
+15 Dec 2016 & 1 Feb 2017 & Train network \\
+1 Feb 2017 & 1 April 2017 & Design and create synthesis algorithm \\
+1 April 2017 & 1 June 2017 & Collect and analyze results \\
+1 June 2017 & 1 Sept 2017 & Write and finalize dissertation \\
+15 Sept 2017 & 15 Sept 2017 & Submit dissertation\\
+\bottomrule
+\end{tabular}
+%\caption{Caption}
+%\end{table*}
+
+\subsection{Possible Concerns \& Mitigations}
+The largest concern is that it may not be possible to define a differentiable loss function. Without a differentiable loss function, gradient descent can not be utilized in the synthesis of the final output. It is the synthesis that allows for the probing of what the feature responses represent in the original audio data. If this proves to be the case, a fall-back is available where the inputs will be an image representation of the input sample's Fourier transform. Treating the input as an image ensures the ability to use the synthesis method proposed as it has already been shown to be possible in the image domain. The resulting synthesized image can then be fed through an inverse transform to take it back to the audio domain and tested as such.
+
+
+%----------------------------------------------------------------------------------------
+%	REFERENCE LIST
+%----------------------------------------------------------------------------------------
+
+\section{Conclusion}
+MIR is an established and growing field, with a number of noteable applications and experiments exploring the analysis, representation and classification of audio data. This proposal presented works that leverage the knowledge of human psychoacoustic perception in their definition of important qualities, utilizing mathematical tools like the spectrogram to formally represent these phenomena. Works were also presented that acknowledge that there may be other important structures in the data that we do not percieve acoustically, and as such explore using advanced Machine Learning approaches to automatically learn these relationships in the data. An experimental Machine Learning system was proposed that aims to test the feature responses learned from a Deep Belief Network by synthesizing a new audio sample that has matching feature responses, and testing whether the two have statistically significant similarities. It is believed that there is merit in this discipline and approach that will yeild usable results.
+
+\bibliography{mybib}{}
+\bibliographystyle{plainnat}
+
+
+
+
+\end{document} 
